@@ -47,10 +47,10 @@ if [ -d "backend" ]; then
     echo "[Backend] Installing dependencies..."
     pip install -r requirements.txt
     
-    echo "[Backend] Starting Flask API Server on :5000..."
+    echo "[Backend] Starting Flask API Server on :5001..."
     # Run in background, log directly to console or redirect
     export FLASK_APP=app.py
-    flask run --port=5000 &
+    flask run --port=5001 &
     BACKEND_PID=$!
     
     cd ..

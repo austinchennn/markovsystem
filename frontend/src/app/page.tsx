@@ -5,12 +5,17 @@ import GraphCanvasWrapper from '@/components/canvas/GraphCanvas';
 import { MatrixDisplay } from '@/components/dashboard/MatrixDisplay';
 import { ConvergenceChart } from '@/components/dashboard/ConvergenceChart';
 import { useMarkovStore } from '@/store/useMarkovStore';
-import { Plus, AlertTriangle } from 'lucide-react';
+import { Plus, AlertTriangle, Download, Trash2, RotateCcw } from 'lucide-react';
 import clsx from 'clsx';
 
 export default function Home() {
-  const { addEvent, validateSystem } = useMarkovStore();
+  const addEvent = useMarkovStore(s => s.addEvent);
+  const validateSystem = useMarkovStore(s => s.validateSystem);
+  const resetSystem = useMarkovStore(s => s.resetSystem);
+  const exportSystem = useMarkovStore(s => s.exportSystem);
   const [errorList, setErrorList] = React.useState<string[]>([]);
+  const [sidebarWidth, setSidebarWidth] = React.useState(400);
+  const isResizingRef = React.useRef(false);
 
   // Periodically validate (or via effect)
   React.useEffect(() => {
@@ -21,6 +26,26 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [validateSystem]);
 
+  React.useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isResizingRef.current) return;
+      const newWidth = Math.max(300, Math.min(800, e.clientX));
+      setSidebarWidth(newWidth);
+    };
+
+    const handleMouseUp = () => {
+      isResizingRef.current = false;
+      document.body.style.cursor = 'default';
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, []);
+
   const handleCreateNode = () => {
     const name = `E${Math.floor(Math.random() * 1000)}`;
     addEvent(name);
@@ -30,7 +55,10 @@ export default function Home() {
     <main className="flex h-screen w-full bg-[#0A0C10] text-[#E0E5EC] overflow-hidden font-mono tracking-wide selection:bg-[#4CAF50]/30 selection:text-[#E0E5EC]">
       
       {/* Sidebar Controls */}
-      <aside className="w-[400px] flex flex-col border-r border-[#E0E5EC]/10 bg-[#0f1115]/50 backdrop-blur-md shadow-[5px_0_30px_rgba(0,0,0,0.5)] z-20">
+      <aside 
+        style={{ width: sidebarWidth }}
+        className="flex flex-col border-r border-[#E0E5EC]/10 bg-[#0f1115]/50 backdrop-blur-md shadow-[5px_0_30px_rgba(0,0,0,0.5)] z-20 shrink-0"
+      >
         
         {/* Header */}
         <div className="p-6 border-b border-[#E0E5EC]/10">
@@ -44,7 +72,7 @@ export default function Home() {
         </div>
 
         {/* Action Panel */}
-        <div className="p-6 border-b border-[#E0E5EC]/10 flex flex-col gap-4">
+        <div className="p-6 border-b border-[#E0E5EC]/10 flex flex-col gap-3">
             <button
                 onClick={handleCreateNode}
                 className="group relative w-full flex items-center justify-center gap-2 px-6 py-3 bg-[#0A0C10] border border-[#E0E5EC]/20 text-[#E0E5EC] hover:border-[#4CAF50] hover:text-[#4CAF50] transition-all duration-300 active:scale-95 text-xs font-bold tracking-widest uppercase shadow-[0_4px_14px_0_rgba(0,0,0,0.39)] hover:shadow-[0_6px_20px_rgba(76,175,80,0.1)]"
@@ -52,27 +80,30 @@ export default function Home() {
                 <Plus size={14} />
                 Create Event Node
             </button>
-            <div className="text-[10px] text-[#E0E5EC]/30 leading-relaxed px-2 border-l border-[#E0E5EC]/10 italic">
+            
+            <div className="grid grid-cols-2 gap-2 mt-2">
+                 <button
+                    onClick={() => { if(confirm("Clear all nodes and edges?")) resetSystem() }}
+                    className="flex items-center justify-center gap-2 px-3 py-2 bg-[#0A0C10] border border-[#E0E5EC]/20 text-[#CF6679] hover:border-[#CF6679] hover:bg-[#CF6679]/10 transition-all text-[10px] font-bold tracking-widest uppercase"
+                    title="Clear System"
+                >
+                    <Trash2 size={12} />
+                    Restart
+                </button>
+                <button
+                    onClick={exportSystem}
+                    className="flex items-center justify-center gap-2 px-3 py-2 bg-[#0A0C10] border border-[#E0E5EC]/20 text-[#E0E5EC] hover:border-[#E0E5EC] hover:bg-[#E0E5EC]/5 transition-all text-[10px] font-bold tracking-widest uppercase"
+                    title="Export ZIP"
+                >
+                    <Download size={12} />
+                    Export
+                </button>
+            </div>
+
+            <div className="text-[10px] text-[#E0E5EC]/30 leading-relaxed px-2 border-l border-[#E0E5EC]/10 italic mt-2">
                 Drag from green handles to connect. Click edge labels to edit probability. Outgoing sum must be 1.0.
             </div>
         </div>
-
-        {/* Errors Display */}
-        {errorList.length > 0 && (
-            <div className="p-4 bg-[#CF6679]/10 border-b border-[#CF6679]/20 animate-in slide-in-from-top-2">
-                <h3 className="text-[#CF6679] text-[10px] font-bold tracking-widest mb-2 flex items-center gap-2">
-                    <AlertTriangle size={12} />
-                    SYSTEM ERROR
-                </h3>
-                <ul className="space-y-1">
-                    {errorList.map((err, i) => (
-                        <li key={i} className="text-[#CF6679]/80 text-[10px] font-bold tracking-wider uppercase truncate">
-                            {err}
-                        </li>
-                    ))}
-                </ul>
-            </div>
-        )}
 
         {/* Dashboard Content */}
         <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
@@ -103,12 +134,38 @@ export default function Home() {
         </div>
       </aside>
 
+      {/* Resize Handle */}
+      <div 
+        className="w-1 hover:w-1.5 bg-[#ffffff]/5 hover:bg-[#4CAF50] cursor-col-resize transition-all duration-150 z-40 flex-shrink-0 active:bg-[#4CAF50]"
+        onMouseDown={(e) => {
+            e.preventDefault(); // Prevent text selection
+            isResizingRef.current = true;
+            document.body.style.cursor = 'col-resize';
+        }}
+      />
+
       {/* Graph Area */}
-      <div className="flex-1 relative bg-[#0A0C10]">
+      <div className="flex-1 relative bg-[#0A0C10] overflow-hidden">
         <GraphCanvasWrapper />
         
-        {/* Overlay Info */}
-        <div className="absolute top-4 right-4 pointer-events-none opacity-50">
+        {/* Top Right Overlay: Errors & Status */}
+        <div className="absolute top-6 right-6 flex flex-col items-end gap-4 pointer-events-none z-50">
+            {errorList.length > 0 && (
+                <div className="bg-[#0f1115]/95 border-l-2 border-[#CF6679] backdrop-blur-xl p-4 shadow-[0_10px_40px_rgba(0,0,0,0.5)] animate-in slide-in-from-right-5 pointer-events-auto max-w-md">
+                    <h3 className="text-[#CF6679] text-xs font-bold tracking-widest mb-3 flex items-center gap-2 uppercase border-b border-[#CF6679]/20 pb-2">
+                        <AlertTriangle size={14} />
+                        System Error
+                    </h3>
+                    <ul className="space-y-2">
+                        {errorList.map((err, i) => (
+                            <li key={i} className="text-[#E0E5EC]/90 text-[11px] font-mono leading-relaxed">
+                                <span className="text-[#CF6679] mr-2">ERROR_CODE_{i}:</span>{err}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+
             <div className="text-[10px] text-[#E0E5EC]/20 text-right uppercase tracking-[0.2em]">
                 Secure Connection // REF: MKV-994
             </div>

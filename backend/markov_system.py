@@ -2,8 +2,8 @@
 
 from typing import List, Dict, Tuple, Optional
 import numpy as np
-from .event import Event
-from .transition import Transition
+from event import Event
+from transition import Transition
 
 class MarkovSystem:
     """

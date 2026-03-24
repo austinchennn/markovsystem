@@ -63,6 +63,7 @@ const GraphCanvas = () => {
         edgeTypes={edgeTypes}
         defaultEdgeOptions={defaultEdgeOptions}
         connectionMode={ConnectionMode.Loose}
+        isValidConnection={(conn) => true} // Explicitly allow all connections including self-loops
         fitView
         className="bg-[#0A0C10]"
       >

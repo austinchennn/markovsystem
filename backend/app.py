@@ -1,6 +1,10 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 from markov_system import MarkovSystem
+import io
+import zipfile
+import json
+import numpy as np
 
 app = Flask(__name__)
 # 允许前端跨域访问
@@ -82,6 +86,55 @@ def simulate():
         print(e)
         return jsonify({"error": str(e)}), 500
 
+@app.route('/export', methods=['POST'])
+def export_system():
+    data = request.json
+    try:
+        system = build_system_from_json(data)
+        ids, matrix = system.get_transition_matrix()
+        
+        # Determine names
+        id_to_name = {eid: ev.name for eid, ev in system.events.items()}
+        names = [id_to_name.get(x, x) for x in ids]
+        
+        # Create ZIP in memory
+        memory_file = io.BytesIO()
+        with zipfile.ZipFile(memory_file, 'w', zipfile.ZIP_DEFLATED) as zf:
+            
+            # 1. graph.json (Raw structure for reloading/standard format)
+            # Re-serialize the request data or build a clean graph format
+            graph_data = {
+                "nodes": data.get('nodes', []),
+                "edges": data.get('edges', [])
+            }
+            zf.writestr('graph.json', json.dumps(graph_data, indent=2))
+            
+            # 2. matrix.txt (Human readable text)
+            # Format: Header row with names, then rows with Name + probs
+            matrix_str = "S \\ S', " + ", ".join(names) + "\n"
+            for i, row_name in enumerate(names):
+                row_vals = ", ".join([f"{x:.4f}" for x in matrix[i]])
+                matrix_str += f"{row_name}, {row_vals}\n"
+            zf.writestr('transition_matrix.csv', matrix_str)
+            
+            # 3. matrix.npy (Numpy binary format)
+            # Use a temporary buffer for numpy save
+            np_buffer = io.BytesIO()
+            np.save(np_buffer, matrix)
+            zf.writestr('transition_matrix.npy', np_buffer.getvalue())
+            
+        memory_file.seek(0)
+        return send_file(
+            memory_file,
+            mimetype='application/zip',
+            as_attachment=True,
+            download_name='markov_system_export.zip'
+        )
+
+    except Exception as e:
+        print(e)
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == '__main__':
-    print("Markov System Backend Running on port 5000...")
-    app.run(port=5000, debug=True)
+    print("Markov System Backend Running on port 5001...")
+    app.run(port=5001, debug=True)

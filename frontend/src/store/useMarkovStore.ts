@@ -38,14 +38,17 @@ export interface MarkovState {
   
   addEvent: (name: string) => void;
   updateEventName: (id: string, name: string) => void;
+  upsertTransition: (source: string, target: string, probability: number) => void;
   updateTransitionProbability: (id: string, prob: number) => void;
   
   // Async actions calling Python backend
   runSimulation: (steps?: number) => Promise<void>;
   validateSystem: () => Promise<string[]>; // Returns validation error messages
+  resetSystem: () => void;
+  exportSystem: () => Promise<void>;
 }
 
-const API_BASE = 'http://localhost:5000';
+const API_BASE = 'http://localhost:5001';
 
 export const useMarkovStore = create<MarkovState>((set, get) => ({
   nodes: [],
@@ -53,6 +56,43 @@ export const useMarkovStore = create<MarkovState>((set, get) => ({
   simulationResult: null,
   matrixResult: null,
   validationErrors: [],
+  
+  resetSystem: () => {
+    set({
+      nodes: [],
+      edges: [],
+      simulationResult: null,
+      matrixResult: null,
+      validationErrors: []
+    });
+  },
+
+  exportSystem: async () => {
+      const { nodes, edges } = get();
+      try {
+          const res = await fetch(`${API_BASE}/export`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ nodes, edges })
+          });
+          
+          if (!res.ok) throw new Error("Export failed");
+          
+          const blob = await res.blob();
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `markov_system_${Date.now()}.zip`;
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(a);
+          
+      } catch (error) {
+          console.error("Export error:", error);
+          alert("Failed to export system data.");
+      }
+  },
 
   onNodesChange: (changes: NodeChange[]) => {
     set({
@@ -106,6 +146,35 @@ export const useMarkovStore = create<MarkovState>((set, get) => ({
         return n;
       }),
     });
+  },
+
+  upsertTransition: (source: string, target: string, probability: number) => {
+    const { edges } = get();
+    const existingEdge = edges.find(e => e.source === source && e.target === target);
+
+    if (existingEdge) {
+        if (probability <= 0) {
+            // Remove edge if probability is 0
+            set({ edges: edges.filter(e => e.id !== existingEdge.id) });
+        } else {
+            // Update
+            set({
+                edges: edges.map(e => e.id === existingEdge.id ? { ...e, data: { ...e.data, probability } } : e)
+            });
+        }
+    } else if (probability > 0) {
+        // Create new
+        const newEdge: Edge = {
+            id: `e${source}-${target}-${Date.now()}`,
+            source: source,
+            target: target,
+            type: 'markovEdge',
+            data: { probability },
+            animated: true,
+        };
+        // Use spread to add new edge
+        set({ edges: [...edges, newEdge] });
+    }
   },
 
   updateTransitionProbability: (id: string, prob: number) => {
