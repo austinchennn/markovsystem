@@ -6,46 +6,57 @@ import {
   Node,
   NodeChange,
   addEdge,
-  OnNodesChange,
-  OnEdgesChange,
   applyNodeChanges,
   applyEdgeChanges,
 } from 'reactflow';
-import { MarkovSystem } from '@/core/MarkovSystem';
-import { Event } from '@/core/Event';
-import { Transition } from '@/core/Transition';
 
-interface MarkovState {
+// Replaced core logic with API interactions
+// No local MarkovSystem TS class needed, just types
+
+interface SimulationResult {
+    steps: number[];
+    distributions: number[][];
+}
+
+interface MatrixResult {
+    ids: string[];
+    values: number[][];
+}
+
+export interface MarkovState {
   nodes: Node[];
   edges: Edge[];
-  system: MarkovSystem; // The core logic instance
   
-  onNodesChange: OnNodesChange;
-  onEdgesChange: OnEdgesChange;
+  // State from backend
+  simulationResult: SimulationResult | null;
+  matrixResult: MatrixResult | null;
+  validationErrors: string[];
+
+  onNodesChange: (changes: NodeChange[]) => void;
+  onEdgesChange: (changes: EdgeChange[]) => void;
   onConnect: (connection: Connection) => void;
   
   addEvent: (name: string) => void;
   updateEventName: (id: string, name: string) => void;
   updateTransitionProbability: (id: string, prob: number) => void;
-  runSimulation: (steps: number, initialProbs?: number[]) => { steps: number[]; distributions: number[][] };
-  validateSystem: () => string[]; // Returns validation error messages
+  
+  // Async actions calling Python backend
+  runSimulation: (steps?: number) => Promise<void>;
+  validateSystem: () => Promise<string[]>; // Returns validation error messages
 }
+
+const API_BASE = 'http://localhost:5000';
 
 export const useMarkovStore = create<MarkovState>((set, get) => ({
   nodes: [],
   edges: [],
-  system: new MarkovSystem(), // Initialize core system
+  simulationResult: null,
+  matrixResult: null,
+  validationErrors: [],
 
   onNodesChange: (changes: NodeChange[]) => {
     set({
       nodes: applyNodeChanges(changes, get().nodes),
-    });
-    // Sync removal logic if nodes are deleted
-    changes.forEach((change) => {
-        if (change.type === 'remove') {
-            const system = get().system;
-            system.removeEvent(change.id);
-        }
     });
   },
 
@@ -53,113 +64,120 @@ export const useMarkovStore = create<MarkovState>((set, get) => ({
     set({
       edges: applyEdgeChanges(changes, get().edges),
     });
-    // Sync removal logic for edges
-    changes.forEach((change) => {
-        if (change.type === 'remove') {
-            const system = get().system;
-            system.removeTransition(change.id);
-        }
-    });
   },
 
   onConnect: (connection: Connection) => {
     const { source, target } = connection;
     if (!source || !target) return;
 
-    // Generate a new Transition in the core system
-    const system = get().system;
     const newTransitionId = `e${source}-${target}-${Date.now()}`;
     
-    // Default probability is 1/N where N is number of outgoing edges? Or just 0.5?
-    // Let's default to 0.5 or user can edit. 
-    // Ideally, we should check existing edges and distribute, but for now fixed.
-    const newTransition = new Transition(newTransitionId, source, target, 0.5);
-    
-    try {
-        system.addTransition(newTransition);
-        
-        // Update React Flow state
-        const newEdge: Edge = {
-            id: newTransitionId,
-            source,
-            target,
-            type: 'severanceEdge', // Custom edge type
-            data: { probability: 0.5 },
-            animated: true,
-        };
+    // Create new edge with default prob 0.5
+    const newEdge: Edge = {
+        id: newTransitionId,
+        source,
+        target,
+        type: 'severanceEdge', 
+        data: { probability: 0.5 },
+        animated: true,
+    };
 
-        set({
-            edges: addEdge(newEdge, get().edges),
-        });
-    } catch (e) {
-        console.error("Failed to add transition", e);
-    }
+    set({ edges: addEdge(newEdge, get().edges) });
   },
 
   addEvent: (name: string) => {
-    const system = get().system;
     const id = `node-${Date.now()}`;
-    const newEvent = new Event(id, name);
-    
-    try {
-        system.addEvent(newEvent);
+    const newNode: Node = {
+        id,
+        position: { x: Math.random() * 400 + 50, y: Math.random() * 400 + 50 }, 
+        data: { label: name },
+        type: 'severanceNode', 
+    };
 
-        // Add to React Flow
-        const newNode: Node = {
-            id,
-            position: { x: Math.random() * 400, y: Math.random() * 400 }, // Random position
-            data: { label: name },
-            type: 'severanceNode', // Custom node type
-        };
-
-        set({
-            nodes: [...get().nodes, newNode],
-        });
-    } catch (e) {
-        console.error("Failed to add event", e);
-    }
+    set({ nodes: [...get().nodes, newNode] });
   },
 
   updateEventName: (id: string, name: string) => {
-      const system = get().system;
-      const event = system.events.get(id);
-      if (event) {
-          event.rename(name);
-          // Sync UI
-          set({
-              nodes: get().nodes.map((node) => {
-                  if (node.id === id) {
-                      return { ...node, data: { ...node.data, label: name } };
-                  }
-                  return node;
-              }),
-          });
-      }
+    set({
+      nodes: get().nodes.map((n) => {
+        if (n.id === id) {
+          return { ...n, data: { ...n.data, label: name } };
+        }
+        return n;
+      }),
+    });
   },
 
   updateTransitionProbability: (id: string, prob: number) => {
-      const system = get().system;
-      system.updateTransitionProbability(id, prob);
+    set({
+      edges: get().edges.map((e) => {
+        if (e.id === id) {
+          return { ...e, data: { ...e.data, probability: prob } };
+        }
+        return e;
+      }),
+    });
+  },
 
-      // Sync UI
-      set({
-          edges: get().edges.map((edge) => {
-              if (edge.id === id) {
-                  return { ...edge, data: { ...edge.data, probability: prob } };
-              }
-              return edge;
-          }),
+  runSimulation: async (steps: number = 20) => {
+    const { nodes, edges } = get();
+    
+    // Prepare payload -> Python backend expects specific structure
+    // We send nodes and edges as is, backend parses 'data' field
+    try {
+      const payload = {
+          nodes: nodes,
+          edges: edges,
+          steps: steps
+      };
+
+      const res = await fetch(`${API_BASE}/simulate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
       });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        console.error("Simulation Error:", errorData);
+        if (errorData.validation_errors) {
+            set({ validationErrors: errorData.validation_errors });
+        }
+        return;
+      }
+
+      const data = await res.json();
+      set({
+        matrixResult: data.matrix,      // { ids: [...], values: [[...]] }
+        simulationResult: data.simulation, // { steps: [...], distributions: [[...]] }
+        validationErrors: []
+      });
+
+    } catch (error) {
+      console.error("Backend Connection Error:", error);
+      set({ validationErrors: ["Backend Disconnected (Check Python Server)"] });
+    }
   },
 
-  runSimulation: (steps: number, initialProbs?: number[]) => {
-      const system = get().system;
-      return system.simulate(steps, initialProbs);
-  },
+  validateSystem: async () => {
+    const { nodes, edges } = get();
+    try {
+      const res = await fetch(`${API_BASE}/validate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nodes, edges }),
+      });
+      
+      const data = await res.json();
+      const errors = data.errors || [];
+      set({ validationErrors: errors });
+      return errors;
 
-  validateSystem: () => {
-      const system = get().system;
-      const errors = system.validate();
-      return errors.map(e => e.error); // Return string array of errors
-  }
+    } catch (error) {
+      console.error("Backend Connection Error:", error);
+      const errs = ["Backend Disconnected (Check Python Server)"];
+      set({ validationErrors: errs });
+      return errs;
+    }
+  },
 }));
