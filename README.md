@@ -58,7 +58,7 @@ if not errors:
 
 ## 2. Frontend (Next.js Application)
 
-The frontend provides an interactive visualization interface inspired by the "Severance" aesthetic.
+The frontend provides an interactive visualization interface inspired by a **Minimalist / Retro-Futuristic** aesthetic.
 
 **Note**: Since the core logic was moved to Python as requested, the frontend currently serves as a UI shell. To connect them, you would typically run the Python code as a backend API (e.g., using FastAPI or Flask) and have the Next.js app fetch data from it.
 
@@ -148,7 +148,7 @@ if not errors:
 
 ## 2. 前端 (Next.js Application)
 
-前端提供了一个受 "人生切割术 (Severance)" 视觉风格启发的交互式可视化界面。
+前端提供了一个受 **复古未来主义 (Retro-Futuristic)** 视觉风格启发的交互式可视化界面。
 
 **注意**：由于核心逻辑已按要求移至 Python，目前前端主要作为 UI 外壳。为了连接它们，您通常需要将 Python 代码作为后端 API 运行（例如使用 FastAPI 或 Flask），并让 Next.js 应用程序从中获取数据。
 

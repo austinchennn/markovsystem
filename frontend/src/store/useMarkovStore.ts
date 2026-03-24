@@ -77,7 +77,7 @@ export const useMarkovStore = create<MarkovState>((set, get) => ({
         id: newTransitionId,
         source,
         target,
-        type: 'severanceEdge', 
+        type: 'markovEdge', 
         data: { probability: 0.5 },
         animated: true,
     };
@@ -91,7 +91,7 @@ export const useMarkovStore = create<MarkovState>((set, get) => ({
         id,
         position: { x: Math.random() * 400 + 50, y: Math.random() * 400 + 50 }, 
         data: { label: name },
-        type: 'severanceNode', 
+        type: 'markovNode', 
     };
 
     set({ nodes: [...get().nodes, newNode] });

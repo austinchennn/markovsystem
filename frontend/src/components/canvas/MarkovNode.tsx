@@ -2,7 +2,7 @@ import React, { memo } from 'react';
 import { Handle, Position, NodeProps } from 'reactflow';
 import clsx from 'clsx';
 
-const SeveranceNode = ({ data, selected }: NodeProps) => {
+const MarkovNode = ({ data, selected }: NodeProps) => {
   return (
     <div
       className={clsx(
@@ -32,4 +32,4 @@ const SeveranceNode = ({ data, selected }: NodeProps) => {
   );
 };
 
-export default memo(SeveranceNode);
+export default memo(MarkovNode);

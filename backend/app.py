@@ -34,7 +34,7 @@ def build_system_from_json(data):
 
 @app.route('/health', methods=['GET'])
 def health():
-    return jsonify({"status": "online", "system": "Severance Markov Backend"})
+    return jsonify({"status": "online", "system": "Markov System Backend"})
 
 @app.route('/validate', methods=['POST'])
 def validate():
@@ -83,5 +83,5 @@ def simulate():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
-    print("Severance Backend Running on port 5000...")
+    print("Markov System Backend Running on port 5000...")
     app.run(port=5000, debug=True)

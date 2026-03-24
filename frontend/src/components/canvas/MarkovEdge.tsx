@@ -7,7 +7,7 @@ import {
   useReactFlow,
 } from 'reactflow';
 
-const SeveranceEdge = ({
+const MarkovEdge = ({
   id,
   sourceX,
   sourceY,
@@ -113,4 +113,4 @@ const SeveranceEdge = ({
   );
 };
 
-export default SeveranceEdge;
+export default MarkovEdge;

@@ -15,7 +15,7 @@ open_browser() {
 
 cleanup() {
     echo ""
-    echo "[Switching Off] Stopping Metadata Refinement..."
+    echo "[Switching Off] Stopping Markov System..."
     pkill -f "flask"
     pkill -f "next-server"
     exit 0
@@ -25,7 +25,7 @@ cleanup() {
 trap cleanup SIGINT
 
 echo "============================================"
-echo "   Severance Markov System - Starting..."
+echo "   Markov System - Starting..."
 echo "============================================"
 
 # Navigate to project root if running from inside a subdirectory

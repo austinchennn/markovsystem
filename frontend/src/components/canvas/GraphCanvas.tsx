@@ -14,19 +14,19 @@ import ReactFlow, {
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useMarkovStore } from '@/store/useMarkovStore';
-import SeveranceNode from './SeveranceNode';
-import SeveranceEdge from './SeveranceEdge';
+import MarkovNode from './MarkovNode';
+import MarkovEdge from './MarkovEdge';
 
 const nodeTypes = {
-  severanceNode: SeveranceNode,
+  markovNode: MarkovNode,
 };
 
 const edgeTypes = {
-  severanceEdge: SeveranceEdge,
+  markovEdge: MarkovEdge,
 };
 
 const defaultEdgeOptions = {
-  type: 'severanceEdge',
+  type: 'markovEdge',
   markerEnd: {
     type: MarkerType.ArrowClosed,
     color: '#E0E5EC',

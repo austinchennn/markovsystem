@@ -1,65 +1,120 @@
-import Image from "next/image";
+'use client';
+
+import React from 'react';
+import GraphCanvasWrapper from '@/components/canvas/GraphCanvas';
+import { MatrixDisplay } from '@/components/dashboard/MatrixDisplay';
+import { ConvergenceChart } from '@/components/dashboard/ConvergenceChart';
+import { useMarkovStore } from '@/store/useMarkovStore';
+import { Plus, AlertTriangle } from 'lucide-react';
+import clsx from 'clsx';
 
 export default function Home() {
+  const { addEvent, validateSystem } = useMarkovStore();
+  const [errorList, setErrorList] = React.useState<string[]>([]);
+
+  // Periodically validate (or via effect)
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+        // Validation now async and could return promise
+        validateSystem().then(errors => setErrorList(errors));
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [validateSystem]);
+
+  const handleCreateNode = () => {
+    const name = `E${Math.floor(Math.random() * 1000)}`;
+    addEvent(name);
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <main className="flex h-screen w-full bg-[#0A0C10] text-[#E0E5EC] overflow-hidden font-mono tracking-wide selection:bg-[#4CAF50]/30 selection:text-[#E0E5EC]">
+      
+      {/* Sidebar Controls */}
+      <aside className="w-[400px] flex flex-col border-r border-[#E0E5EC]/10 bg-[#0f1115]/50 backdrop-blur-md shadow-[5px_0_30px_rgba(0,0,0,0.5)] z-20">
+        
+        {/* Header */}
+        <div className="p-6 border-b border-[#E0E5EC]/10">
+          <h1 className="text-xl font-bold tracking-[0.2em] uppercase text-[#E0E5EC] flex items-center gap-2">
+            <span className={clsx("w-2 h-2 rounded-full shadow-[0_0_8px]", errorList.length > 0 ? "bg-[#CF6679] shadow-[#CF6679]" : "bg-[#4CAF50] shadow-[#4CAF50] animate-pulse")}></span>
+            MARKOV<span className="text-[#4CAF50] opacity-50">.SYSTEM</span>
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+          <div className="text-[10px] text-[#E0E5EC]/40 uppercase tracking-widest mt-1">
+            Core Visualization // V1
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* Action Panel */}
+        <div className="p-6 border-b border-[#E0E5EC]/10 flex flex-col gap-4">
+            <button
+                onClick={handleCreateNode}
+                className="group relative w-full flex items-center justify-center gap-2 px-6 py-3 bg-[#0A0C10] border border-[#E0E5EC]/20 text-[#E0E5EC] hover:border-[#4CAF50] hover:text-[#4CAF50] transition-all duration-300 active:scale-95 text-xs font-bold tracking-widest uppercase shadow-[0_4px_14px_0_rgba(0,0,0,0.39)] hover:shadow-[0_6px_20px_rgba(76,175,80,0.1)]"
+            >
+                <Plus size={14} />
+                Create Event Node
+            </button>
+            <div className="text-[10px] text-[#E0E5EC]/30 leading-relaxed px-2 border-l border-[#E0E5EC]/10 italic">
+                Drag from green handles to connect. Click edge labels to edit probability. Outgoing sum must be 1.0.
+            </div>
         </div>
-      </main>
-    </div>
+
+        {/* Errors Display */}
+        {errorList.length > 0 && (
+            <div className="p-4 bg-[#CF6679]/10 border-b border-[#CF6679]/20 animate-in slide-in-from-top-2">
+                <h3 className="text-[#CF6679] text-[10px] font-bold tracking-widest mb-2 flex items-center gap-2">
+                    <AlertTriangle size={12} />
+                    SYSTEM ERROR
+                </h3>
+                <ul className="space-y-1">
+                    {errorList.map((err, i) => (
+                        <li key={i} className="text-[#CF6679]/80 text-[10px] font-bold tracking-wider uppercase truncate">
+                            {err}
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        )}
+
+        {/* Dashboard Content */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar">
+            
+            <section>
+                <h2 className="text-[10px] font-bold text-[#E0E5EC]/30 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                    <span className="w-1 h-1 bg-[#4CAF50] rounded-full"></span>
+                    Transition Matrix
+                </h2>
+                <MatrixDisplay />
+            </section>
+
+            <section>
+                <h2 className="text-[10px] font-bold text-[#E0E5EC]/30 uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
+                    <span className="w-1 h-1 bg-[#4CAF50] rounded-full"></span>
+                    Convergence Analysis
+                </h2>
+                <ConvergenceChart />
+            </section>
+        </div>
+
+        {/* Footer Status */}
+        <div className="p-3 border-t border-[#E0E5EC]/10 text-[9px] text-[#E0E5EC]/20 uppercase tracking-widest flex justify-between bg-[#050608]">
+            <span className={errorList.length > 0 ? "text-[#CF6679]" : "text-[#4CAF50]"}>
+                System Status: {errorList.length === 0 ? 'Optimal' : 'Checking'}
+            </span>
+            <span>v1.5.0-CORE</span>
+        </div>
+      </aside>
+
+      {/* Graph Area */}
+      <div className="flex-1 relative bg-[#0A0C10]">
+        <GraphCanvasWrapper />
+        
+        {/* Overlay Info */}
+        <div className="absolute top-4 right-4 pointer-events-none opacity-50">
+            <div className="text-[10px] text-[#E0E5EC]/20 text-right uppercase tracking-[0.2em]">
+                Secure Connection // REF: MKV-994
+            </div>
+        </div>
+      </div>
+
+    </main>
   );
 }
