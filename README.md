@@ -1,9 +1,22 @@
 <div align="center">
 
-# Markov Chain System 
+<img src="media/logo.jpg" alt="Markov Chain System" width="120" />
+
+# 🔗 Markov Chain System
+
+_Interactive Markov Chain simulation & visualization platform_
+
+![Python](https://img.shields.io/badge/python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white)
+![Flask](https://img.shields.io/badge/flask-API-000000?style=flat-square&logo=flask&logoColor=white)
+![Next.js](https://img.shields.io/badge/next.js-16+-000000?style=flat-square&logo=next.js&logoColor=white)
+![TypeScript](https://img.shields.io/badge/typescript-strict-3178C6?style=flat-square&logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/tailwind_css-4-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white)
+![React Flow](https://img.shields.io/badge/react_flow-graph-FF0072?style=flat-square)
+![Recharts](https://img.shields.io/badge/recharts-charts-8884d8?style=flat-square)
+![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)
 
 <p>
-    <a href="#chinese">中文</a> • <a href="#english">English</a>
+    <a href="#chinese">中文</a> · <a href="#english">English</a>
 </p>
 
 </div>
@@ -12,155 +25,91 @@
 
 <div id="chinese"></div>
 
-# 中文
+## 📸 界面预览
 
-本项目分为两个独立的部分：**后端（Python 核心逻辑）** 和 **前端（Next.js 可视化界面）**。
+<div align="center">
 
-这是一个基于马尔可夫链（Markov Chain）的系统模拟与可视化工具，旨在提供直观的状态转移编辑与概率分析功能。
+<img src="media/frontend.png" alt="Frontend Interface" width="90%" />
 
-## 项目结构
+<p><em>▲ 主界面 — 拖拽式马尔可夫链编辑器</em></p>
 
-- `backend/` - 包含用 Python 实现的核心马尔可夫链逻辑与计算引擎。
-- `frontend/` - 包含 Next.js 前端应用程序（React, Tailwind CSS, TypeScript）。
+</div>
+
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <img src="media/transition_matrx.png" alt="Transition Matrix" width="100%" />
+      <br /><em>转移概率矩阵</em>
+    </td>
+    <td align="center" width="50%">
+      <img src="media/Convergence Analysis.png" alt="Convergence Analysis" width="100%" />
+      <br /><em>收敛分析图表</em>
+    </td>
+  </tr>
+</table>
 
 ---
 
-## 快速开始
+## ✨ 特性
 
-### 1. 后端 (Python Core)
+| 功能 | 描述 |
+|:---:|:---|
+| 🖱️ **可视化编辑** | 拖拽节点、连线创建状态转移图 |
+| 📊 **实时矩阵** | 自动生成并展示转移概率矩阵 |
+| 📈 **收敛分析** | 模拟多步迭代，直观展示状态分布收敛过程 |
+| ✅ **概率验证** | 自动校验每行转移概率之和是否为 1.0 |
+| 💾 **导入/导出** | 支持 JSON 格式保存与加载系统状态 |
+| 🎨 **Retro-Futuristic** | 复古未来主义 UI 风格 |
 
-马尔可夫系统的数学核心由 Python 实现，负责处理矩阵运算和系统模拟。
+---
 
-#### 核心文件说明 (`backend/`)
+## 🏗️ 架构
 
-- `markov_system.py`: 系统主控制器。管理状态机、验证转移概率完整性（Sum=1.0），并执行矩阵乘法进行模拟。
-- `event.py`: 定义马尔可夫链中的状态（节点）。
-- `transition.py`: 定义状态之间的转移路径及其概率（边）。
-
-#### 使用示例
-
-您可以直接在 Python 中调用核心逻辑：
-
-```python
-from backend.markov_system import MarkovSystem
-
-system = MarkovSystem()
-system.add_event("1", "Event A")
-system.add_event("2", "Event B")
-system.add_transition("t1", "1", "2", 1.0)
-system.add_transition("t2", "2", "1", 1.0)
-
-# 验证系统完整性
-errors = system.validate()
-if not errors:
-    # 模拟 10 步状态分布
-    steps, distributions = system.simulate(10)
-    print(distributions)
 ```
-
-### 2. 前端 (Next.js Application)
-
-前端提供了一个 **复古未来主义 (Retro-Futuristic)** 风格的交互式可视化界面，支持拖拽连线、动态调整概率矩阵，以及实时查看收敛图表。
-
-#### 技术栈
-
-- **框架**: Next.js 14+ (App Router)
-- **语言**: TypeScript
-- **样式**: Tailwind CSS
-- **可视化**: React Flow (流程图核心), Recharts (数据图表)
-
-#### 运行步骤
-
-请确保您已安装 Node.js 环境。
-
-1. 进入 `frontend` 目录：
-   ```bash
-   cd frontend
-   ```
-
-2. 安装依赖：
-   ```bash
-   npm install
-   ```
-
-3. 启动开发服务器：
-   ```bash
-   npm run dev
-   ```
-
-4. 打开浏览器访问 [http://localhost:3000](http://localhost:3000) 查看界面。
-
----
-
-## 关于 `node_modules`
-
-`node_modules` 目录包含了项目运行所需的所有第三方库和依赖项。您不需要编辑此文件夹中的文件。
-
-**重要**: 请勿将 `node_modules` 提交到版本控制（它已被 `.gitignore` 忽略）。
-
----
-
-<div id="english"></div>
-
-# English
-
-This project is divided into two distinct parts: the **Backend (Core Logic in Python)** and the **Frontend (Next.js Application)**.
-
-## Project Structure
-
-- `backend/` - Contains the core Markov Chain logic implemented in Python.
-- `frontend/` - Contains the Next.js frontend application (React, Tailwind CSS).
-
----
-
-## 1. Backend (Python Core)
-
-The mathematical core of the Markov System is implemented in Python for robust matrix operations and system simulation.
-
-### Core Files (`backend/`)
-
-- `markov_system.py`: The main controller class. Manages the system state, validates probabilities, and performs matrix multiplication for simulation.
-- `event.py`: Represents a state (node) in the Markov Chain.
-- `transition.py`: Represents a transition (edge) between states with a probability.
-
-### Usage (Python)
-
-You can run the core logic directly in Python:
-
-```python
-from backend.markov_system import MarkovSystem
-
-system = MarkovSystem()
-system.add_event("1", "Event A")
-system.add_event("2", "Event B")
-system.add_transition("t1", "1", "2", 1.0)
-system.add_transition("t2", "2", "1", 1.0)
-
-# Validate
-errors = system.validate()
-if not errors:
-    # Simulate
-    steps, distributions = system.simulate(10)
-    print(distributions)
+markovsystem/
+├── backend/          ← Python 核心计算引擎
+│   ├── app.py              Flask API 入口
+│   ├── markov_system.py    系统主控 · 矩阵运算 · 模拟
+│   ├── event.py            状态节点定义
+│   └── transition.py       转移边定义
+├── frontend/         ← Next.js 可视化界面
+│   └── src/
+│       ├── app/            页面路由 & 布局
+│       ├── components/     React Flow 画布 & 图表组件
+│       └── store/          Zustand 全局状态管理
+├── media/            ← 项目截图
+└── start.sh          ← 一键启动脚本
 ```
 
 ---
 
-## 2. Frontend (Next.js Application)
+## 🚀 快速开始
 
-The frontend provides an interactive visualization interface inspired by a **Minimalist / Retro-Futuristic** aesthetic.
+### 一键启动
 
-### Tech Stack
+```bash
+chmod +x start.sh && ./start.sh
+```
 
-- **Framework**: Next.js 14+ (App Router)
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **Visualization**: React Flow
-- **Charts**: Recharts
+> 自动启动后端 (`:5001`) + 前端 (`:3000`)，并打开浏览器。
 
-### Running the Frontend
+### 分别启动
 
-Navigate to the `frontend` directory first:
+<details>
+<summary><b>后端 (Flask API)</b></summary>
+
+```bash
+cd backend
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+flask run --port=5001
+```
+
+</details>
+
+<details>
+<summary><b>前端 (Next.js)</b></summary>
 
 ```bash
 cd frontend
@@ -168,12 +117,200 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) to view the interface.
+打开 [http://localhost:3000](http://localhost:3000)
+
+</details>
+
+### Python 直接调用
+
+```python
+from backend.markov_system import MarkovSystem
+
+system = MarkovSystem()
+system.add_event("1", "Event A")
+system.add_event("2", "Event B")
+system.add_transition("t1", "1", "2", 1.0)
+system.add_transition("t2", "2", "1", 1.0)
+
+errors = system.validate()
+if not errors:
+    steps, distributions = system.simulate(10)
+    print(distributions)
+```
 
 ---
 
-## 3. About `node_modules`
+## 🛠️ 技术栈
 
-The `node_modules` directory contains all the external libraries and dependencies required for the project to run. You do not need to edit files in this folder.
+<table>
+  <tr>
+    <th align="center">层级</th>
+    <th align="center">技术</th>
+    <th align="center">用途</th>
+  </tr>
+  <tr>
+    <td align="center"><b>Backend</b></td>
+    <td>Python · Flask</td>
+    <td>马尔可夫链核心算法 & REST API</td>
+  </tr>
+  <tr>
+    <td align="center"><b>Frontend</b></td>
+    <td>Next.js · TypeScript · Tailwind CSS</td>
+    <td>响应式 Web 界面</td>
+  </tr>
+  <tr>
+    <td align="center"><b>Graph</b></td>
+    <td>React Flow</td>
+    <td>交互式状态转移图绘制</td>
+  </tr>
+  <tr>
+    <td align="center"><b>Charts</b></td>
+    <td>Recharts</td>
+    <td>收敛曲线 & 数据可视化</td>
+  </tr>
+  <tr>
+    <td align="center"><b>State</b></td>
+    <td>Zustand</td>
+    <td>前端全局状态管理</td>
+  </tr>
+</table>
 
-**Important**: Do not commit `node_modules` to version control (it is ignored by `.gitignore`).
+---
+
+<div id="english"></div>
+
+## 📸 Screenshots
+
+<div align="center">
+
+<img src="media/frontend.png" alt="Frontend Interface" width="90%" />
+
+<p><em>▲ Main Interface — Drag-and-drop Markov Chain Editor</em></p>
+
+</div>
+
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <img src="media/transition_matrx.png" alt="Transition Matrix" width="100%" />
+      <br /><em>Transition Probability Matrix</em>
+    </td>
+    <td align="center" width="50%">
+      <img src="media/Convergence Analysis.png" alt="Convergence Analysis" width="100%" />
+      <br /><em>Convergence Analysis Chart</em>
+    </td>
+  </tr>
+</table>
+
+---
+
+## ✨ Features
+
+| Feature | Description |
+|:---:|:---|
+| 🖱️ **Visual Editor** | Drag-and-drop nodes and edges to build state transition graphs |
+| 📊 **Live Matrix** | Auto-generated transition probability matrix |
+| 📈 **Convergence** | Multi-step simulation with distribution convergence visualization |
+| ✅ **Validation** | Automatic row-sum probability check (= 1.0) |
+| 💾 **Import/Export** | Save & load system state as JSON |
+| 🎨 **Retro-Futuristic** | Minimalist retro-futuristic UI aesthetic |
+
+---
+
+## 🚀 Quick Start
+
+### One-Click Launch
+
+```bash
+chmod +x start.sh && ./start.sh
+```
+
+> Auto-starts backend (`:5001`) + frontend (`:3000`) and opens browser.
+
+### Manual Setup
+
+<details>
+<summary><b>Backend (Flask API)</b></summary>
+
+```bash
+cd backend
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+flask run --port=5001
+```
+
+</details>
+
+<details>
+<summary><b>Frontend (Next.js)</b></summary>
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000)
+
+</details>
+
+### Python API Usage
+
+```python
+from backend.markov_system import MarkovSystem
+
+system = MarkovSystem()
+system.add_event("1", "Event A")
+system.add_event("2", "Event B")
+system.add_transition("t1", "1", "2", 1.0)
+system.add_transition("t2", "2", "1", 1.0)
+
+errors = system.validate()
+if not errors:
+    steps, distributions = system.simulate(10)
+    print(distributions)
+```
+
+---
+
+## 🛠️ Tech Stack
+
+<table>
+  <tr>
+    <th align="center">Layer</th>
+    <th align="center">Technology</th>
+    <th align="center">Purpose</th>
+  </tr>
+  <tr>
+    <td align="center"><b>Backend</b></td>
+    <td>Python · Flask</td>
+    <td>Markov Chain core algorithms & REST API</td>
+  </tr>
+  <tr>
+    <td align="center"><b>Frontend</b></td>
+    <td>Next.js · TypeScript · Tailwind CSS</td>
+    <td>Responsive web interface</td>
+  </tr>
+  <tr>
+    <td align="center"><b>Graph</b></td>
+    <td>React Flow</td>
+    <td>Interactive state transition graph</td>
+  </tr>
+  <tr>
+    <td align="center"><b>Charts</b></td>
+    <td>Recharts</td>
+    <td>Convergence curves & data visualization</td>
+  </tr>
+  <tr>
+    <td align="center"><b>State</b></td>
+    <td>Zustand</td>
+    <td>Frontend global state management</td>
+  </tr>
+</table>
+
+---
+
+<div align="center">
+<sub>Built with ❤️ and stochastic matrices</sub>
+</div>
