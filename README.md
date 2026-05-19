@@ -310,7 +310,3 @@ if not errors:
 </table>
 
 ---
-
-<div align="center">
-<sub>Built with ❤️ and stochastic matrices</sub>
-</div>
